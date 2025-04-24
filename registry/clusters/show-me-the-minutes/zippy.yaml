@@ -19,7 +19,7 @@ spec:
           image:
             # todo hard code the repository 
             repository: 126827061464.dkr.ecr.us-east-2.amazonaws.com/zippy
-            tag: efdaf03354808704cb0c998c82a303f8871f6ddf
+            tag: 498c67b98d135b818efabb8092ee4e343bcba2cf
           ingress:
             className: nginx
             enabled: true
