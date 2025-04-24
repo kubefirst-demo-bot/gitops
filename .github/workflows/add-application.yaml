@@ -122,5 +122,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "general@konstruct.io"
           git add --all
-          git commit -m "[skip-ci] add $APP_NAME in $CLUSTER_NAME" || echo "No changes to commit"
+          git commit -m "add $APP_NAME in $CLUSTER_NAME" || echo "No changes to commit"
           git push origin HEAD
