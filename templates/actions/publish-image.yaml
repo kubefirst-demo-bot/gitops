@@ -80,7 +80,7 @@ jobs:
                       
       - name: update-image-tag
         run: |
-          sed "s/repository:.*/repository: $ECR_REGISTRY/" -i registry/clusters/{clusterName}/{appName}.yaml
+          sed "s/repository:.*/repository: $ECR_REGISTRY\/{appName}/" -i registry/clusters/{clusterName}/{appName}.yaml
           sed "s/tag:.*/tag: $IMAGE_TAG/" -i registry/clusters/{clusterName}/{appName}.yaml
 
       - name: configure-git
