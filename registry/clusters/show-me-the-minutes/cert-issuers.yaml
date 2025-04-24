@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  name: cert-manager-show-me-the-minutes-components
+  namespace: "argocd"
+spec: 
+  destination:
+    name: show-me-the-minutes
+    namespace: cert-manager
+  project: default
+  source:
+    path: registry/clusters/show-me-the-minutes/cert-issuers
+    repoURL: https://github.com/kubefirst-demo-bot/gitops
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
