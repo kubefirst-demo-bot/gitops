@@ -9,6 +9,9 @@ on:
       cluster_name:
         description: 'Cluster name'
         required: false
+  push:
+    branches:
+      muse-sisay/action-to-add-app
 
 jobs:
   validate-inputs:
