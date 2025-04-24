@@ -71,6 +71,14 @@ jobs:
     # needs:
     #   - validate-inputs
     steps:
+      - name: Extract owner/repo
+        id: extract_repo
+        run: |
+          APP_REPO="https://github.com/kubefirst-demo-bot/zippy"
+          stripped=$(echo "https://github.com/kubefirst-demo-bot/zippy" | cut -d / -f 4,5)
+          echo "owner_repo=$stripped" >> $GITHUB_OUTPUT
+
+
       - name: Checkout gitops repo
         uses: actions/checkout@v4
         with:
@@ -79,7 +87,7 @@ jobs:
       - name: Check app repository code
         uses: actions/checkout@v4
         with:
-          repository: $app_repo
+          repository: ${{steps.extract_repo.outputs.owner_repo}}
           path: app
           token: place your token here
       
