@@ -1,0 +1,96 @@
+name: push-artifact-to-ecr
+on: 
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+
+env:
+  AWS_REGION : "us-west-2"
+  # update role ARN
+  ASSUME_ROLE_ARN : "arn:aws:iam::126827061464:role/github-action-oidc-pass-app-repo"
+
+jobs:
+  publish-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          repository: "jarededwards/zippy"
+          ref: "main"
+          fetch-depth: 0
+      
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
+        with:
+          role-to-assume: ${{ env.ASSUME_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # fix this upstream. or have a place holder
+      - name: replace remote registry
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          sed -i "s/ghcr.io\/jarededwards/$ECR_REGISTRY\/konstructio/g" .goreleaser.yaml
+          cat .goreleaser.yaml
+
+      - name: push-image
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "~> 2"
+          args: release --skip=validate,archive --clean
+
+
+  update-<clusterName?:
+    name: "update-chart-<clusterName>"
+    runs-on: self-hosted
+    needs: 
+      - publish-chart-oci-format
+    env:
+      CHART_VERSION: ${{ needs.publish-chart-oci-format.outputs.CHART_VERSION }}
+    steps:
+      - name: print-version
+        run: echo "Updating paas-api chart to $CHART_VERSION"
+      
+      - name: checkout-gitops
+        uses: actions/checkout@v4
+        with:
+          repository: "konstructio-paas/gitops"
+          ref: main
+          token: ${{ secrets.GH_TOKEN }}
+      
+      - name: get-mikefarah-yq
+        run: |
+          wget -O yq https://github.com/mikefarah/yq/releases/download/v4.45.1/yq_linux_amd64
+          chmod u+x yq          
+                      
+      - name: update-version
+        run: |
+          ./yq -i ".spec.sources[0].targetRevision=\"$CHART_VERSION\"" registry/clusters/pd-ae2-01/components/paas-api/app.yaml
+          
+      - name: configure-git
+        run: |
+          git config --global user.email "konstruct-bot@konstruct.io"
+          git config --global user.name "konstruct-bot"
+
+      - name: commit-and-push
+        run: |
+          git add  registry/clusters/pd-ae2-01/components/paas-api/app.yaml
+          git commit -m "[skip ci]: upgrade paas-api chart to $CHART_VERSION in pd-ae2-01"
+          
+          git push origin main
+          

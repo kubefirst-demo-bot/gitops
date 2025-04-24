@@ -1,0 +1,57 @@
+name: push-artifact-to-ecr
+on: 
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "charts/zippy/**"
+
+jobs:
+  publish-chart-oci-format:
+    name: Publish Chart to GHCR
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    outputs:
+      CHART_VERSION: ${{ steps.publish-chart.outputs.CHART_VERSION }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      
+      - name: get-helm
+        run: |
+          wget https://get.helm.sh/helm-v3.16.2-linux-amd64.tar.gz
+          tar xvf helm-v3.16.2-linux-amd64.tar.gz
+          
+          alias helm="$(pwd)/linux-amd64/helm"
+
+      - name: build-chart
+        run: |
+          cd charts/paas-api
+          helm package .
+
+      - name: login-to-ghcr
+        run: |
+          echo "loggign into "
+          echo "$GITHUB_TOKEN" | helm registry login -u konstruct-bot --password-stdin ghcr.io
+        env:
+          # GITHUB_TOKEN : ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN : ${{ secrets.GITHUB_TOKEN }}
+        
+      - name: push-to-ghcr
+        id: publish-chart
+        run: |
+          cd charts/paas-api
+          
+          CHART_NAME=$(cat Chart.yaml | grep "^name" | cut -f 2 -d " ")
+          CHART_VERSION=$(cat Chart.yaml | grep "^version" | cut -f 2 -d " ")
+          CHART_ARCHIVE_FILE="$CHART_NAME"-"$CHART_VERSION".tgz
+
+          helm push "$CHART_ARCHIVE_FILE" oci://ghcr.io/konstructio
+
+          echo "CHART_VERSION=$CHART_VERSION" >> $GITHUB_OUTPUT
+
+
+       

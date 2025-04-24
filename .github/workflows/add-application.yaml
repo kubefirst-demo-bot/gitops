@@ -1,0 +1,63 @@
+name: Add new appplication
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_repo:
+        description: 'Application repistory'
+        required: true
+      cluster_name:
+        description: 'Cluster name'
+        required: false
+
+jobs:
+  validate-inputs:
+    runs-on: ubuntu-latest
+    # skip this for now
+    steps:
+      - name: Validate cluser
+        run: echo "${{ inputs.greeting }}, ${{ inputs.name }}!"
+      - name: Validate repository
+        run: echo "${{ inputs.greeting }}, ${{ inputs.name }}!"
+
+  create-argo-app:
+    runs-on: ubuntu-latest
+    needs: 
+      - validate-inputs
+    env:
+      - name: clusterName
+      - name: appName
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: ceate argo app
+        run: |
+          cp ./templates/argo-app.yaml ./registry/clusters/$clusterName/$app-name.yaml
+          # replace is the variables
+          # profit
+
+  copy-over-ci:
+  # what auth should we use t
+    runs-on: ubuntu-latest
+    needs:
+      - validate-inputs
+    steps:
+      - name: Checkout gitops repo
+        uses: actions/checkout@v4
+        with:
+          path: gitops
+
+      - name: Check app repository code
+        uses: actions/checkout@v4
+        with:
+          repository: $app_repo
+          path: app
+          token: place your token here
+      
+      - name: commit workflow, docker file, and charts
+        run: |
+          cp gitops/tempaltes/actions/publish-image.yaml app/.github/workflows/publish-image.yaml
+      
+      - name: make a commit or PR
+        run: |
+          # make the commit
