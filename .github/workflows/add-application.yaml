@@ -70,10 +70,12 @@ jobs:
     runs-on: ubuntu-latest
     # needs:
     #   - validate-inputs
+    p
     steps:
       - name: Extract owner/repo
         id: extract_repo
         run: |
+          # TODO remove hardcoded repo name
           APP_REPO="https://github.com/kubefirst-demo-bot/zippy"
           stripped=$(echo "https://github.com/kubefirst-demo-bot/zippy" | cut -d / -f 4,5)
           echo "owner_repo=$stripped" >> $GITHUB_OUTPUT
@@ -89,7 +91,7 @@ jobs:
         with:
           repository: ${{steps.extract_repo.outputs.owner_repo}}
           path: app
-          token: place your token here
+          token: ${{ secrets.KBOT_TOKEN}}
       
       - name: debug-check-repo are cloned
         run: |
