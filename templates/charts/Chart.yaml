@@ -1,4 +1,6 @@
 apiVersion: v2
+# TODO replace the app name
+# name: {appName}
 name: zippy
 description: A Helm chart for Kubernetes
 

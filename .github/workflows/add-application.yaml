@@ -1,4 +1,4 @@
-name: Add new appplication
+name: Add new application
 
 on:
   workflow_dispatch:
@@ -14,30 +14,46 @@ jobs:
   validate-inputs:
     runs-on: ubuntu-latest
     # skip this for now
+    env:
+      CLUSTER_NAME : ${{inputs.cluster_name}}
+      APP_REPO : ${{inputs.app_repo}}
     steps:
-      - name: Validate cluser
-        run: echo "${{ inputs.greeting }}, ${{ inputs.name }}!"
+      - name: Validate cluster
+        run: echo "Validating $CLUSTER_NAME"
       - name: Validate repository
-        run: echo "${{ inputs.greeting }}, ${{ inputs.name }}!"
+        run: echo "Validating $APP_REPO"
 
   create-argo-app:
     runs-on: ubuntu-latest
     needs: 
       - validate-inputs
     env:
-      - name: clusterName
-      - name: appName
+      CLUSTER_NAME : ${{inputs.cluster_name}}
+      APP_REPO : ${{inputs.app_repo}}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
-      - name: ceate argo app
+      
+      - name: create argo app
         run: |
-          cp ./templates/argo-app.yaml ./registry/clusters/$clusterName/$app-name.yaml
-          # replace is the variables
-          # profit
+          # this assumes the endpoint is https:///
+          APP_NAME=$(echo "$APP_REPO" | cut -d / -f 5 | sed 's/\.git//' )
 
+          cp ./templates/argo-app.yaml ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+          
+          # replace {clusterName}
+          sed "s/{clusterName}/$CLUSTER_NAME/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+
+          # replace {appName}
+          sed "s/{appName}/$APP_NAME/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+
+      # TODO: commit the changes
+      - name: Commit changes
+        uses: actions/superpowerful-action
+
+  # change the name
   copy-over-ci:
-  # what auth should we use t
+  # what auth should we use
     runs-on: ubuntu-latest
     needs:
       - validate-inputs
@@ -55,8 +71,19 @@ jobs:
           token: place your token here
       
       - name: commit workflow, docker file, and charts
+        env:
+          APP_REPO : ${{inputs.app_repo}}
         run: |
-          cp gitops/tempaltes/actions/publish-image.yaml app/.github/workflows/publish-image.yaml
+          cp gitops/templates/Dockerfile app/Dockerfile
+
+          # TODO create the directory if it doesn't exist
+          mkdir -p app/.github/workflows
+          cp gitops/templates/actions/publish-image.yaml app/.github/workflows/publish-image.yaml
+          cp gitops/templates/actions/publish-chart.yaml app/.github/workflows/publish-chart.yaml
+
+          mkdir -p "app/charts/$APP_NAME"
+          cp -r gitops/charts "app/charts/$APP_NAME"
+
       
       - name: make a commit or PR
         run: |

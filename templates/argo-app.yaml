@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ${appName}-${clusterName}
+  name: {appName}-{clusterName}
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -11,14 +11,14 @@ spec:
   project: default
   source:
     repoURL: repo-url # sed replaced later on from the application action
-    chart: ${appName}
+    chart: {appName}
     targetRevision: target-revision
     helm:
       values: |-
-        ${appName}:
+        {appName}:
           image:
           # todo hard code the repository 
-          repository: ghcr.io/konstructio/${appName}
+          repository: <ecr_repo>/{appName}
           ingress:
             className: nginx
             enabled: true
@@ -29,16 +29,16 @@ spec:
               cert-manager.io/issuer-group: cert-manager.k8s.cloudflare.com
               external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
             hosts:
-              - host: ${appName}-${clusterName}.gitopsmagic.com
+              - host: {appName}-{clusterName}.gitopsmagic.com
                 paths:
                   - path: /
                     pathType: Prefix
             tls:
-              - secretName: ${appName}-tls
+              - secretName: {appName}-tls
                 hosts:
-                  - ${appName}-${clusterName}.gitopsmagic.com
+                  - {appName}-{clusterName}.gitopsmagic.com
   destination:
-    name: ${cluster-name}
+    name: {clusterName}
     namespace: development # hard coded for now
   syncPolicy:
     automated:
