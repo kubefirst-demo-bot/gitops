@@ -18,6 +18,7 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+        # TODO remove below block
         with:
           repository: "jarededwards/zippy"
           ref: "main"
