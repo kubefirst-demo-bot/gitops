@@ -104,6 +104,7 @@ jobs:
           cp gitops/templates/actions/publish-image.yaml app/.github/workflows/publish-image.yaml
           # replace {clusterName}
           sed "s/{clusterName}/$CLUSTER_NAME/g" -i app/.github/workflows/publish-image.yaml
+          sed "s/{appName}/$APP_NAME/g" -i app/.github/workflows/publish-image.yaml
 
           cp gitops/templates/actions/publish-chart.yaml app/.github/workflows/publish-chart.yaml
 
