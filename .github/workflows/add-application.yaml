@@ -2,16 +2,16 @@ name: Add new application
 
 on:
   workflow_dispatch:
-    # inputs:
-    #   app_repo:
-    #     description: 'Application repistory'
-    #     required: true
-    #   cluster_name:
-    #     description: 'Cluster name'
-    #     required: false
-  # push:
-  #   branches:
-  #     muse-sisay/action-to-add-app
+    inputs:
+      app_repo:
+        description: 'Application repistory'
+        required: true
+      cluster_name:
+        description: 'Cluster name'
+        required: false
+  push:
+    branches:
+      muse-sisay/action-to-add-app
 
 jobs:
   validate-inputs:
