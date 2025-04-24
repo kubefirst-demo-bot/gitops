@@ -14,7 +14,29 @@ spec:
     chart: zippy
     targetRevision: target-revision
     helm:
-      values: "zippy:\n  image:\n  # todo hard code the repository \n  repository: <ecr_repo>/zippy\n  ingress:\n    className: nginx\n    enabled: true\n    annotations:\n      nginx.ingress.kubernetes.io/service-upstream: \"true\"\n      cert-manager.io/issuer: cloudflare-origin-issuer\n      cert-manager.io/issuer-kind: OriginIssuer\n      cert-manager.io/issuer-group: cert-manager.k8s.cloudflare.com\n      external-dns.alpha.kubernetes.io/cloudflare-proxied: \"true\"\n    hosts:\n      - host: zippy-show-me-the-minutes.gitopsmagic.com\n        paths:\n          - path: /\n            pathType: Prefix\n    tls:\n      - secretName: zippy-tls\n        hosts:\n          - zippy-show-me-the-minutes.gitopsmagic.com"
+      values: |-
+        zippy:
+          image:
+          # todo hard code the repository 
+          repository: <ecr_repo>/zippy
+          ingress:
+            className: nginx
+            enabled: true
+            annotations:
+              nginx.ingress.kubernetes.io/service-upstream: "true"
+              cert-manager.io/issuer: cloudflare-origin-issuer
+              cert-manager.io/issuer-kind: OriginIssuer
+              cert-manager.io/issuer-group: cert-manager.k8s.cloudflare.com
+              external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+            hosts:
+              - host: zippy-show-me-the-minutes.gitopsmagic.com
+                paths:
+                  - path: /
+                    pathType: Prefix
+            tls:
+              - secretName: zippy-tls
+                hosts:
+                  - zippy-show-me-the-minutes.gitopsmagic.com
   destination:
     name: show-me-the-minutes
     namespace: development # hard coded for now
@@ -24,5 +46,3 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-  sources:
-    - targetRevision: 455071fdf08f596bbc97bc46620b4edb1d4a62ec
