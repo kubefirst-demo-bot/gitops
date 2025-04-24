@@ -55,7 +55,7 @@ jobs:
           args: release --skip=validate,archive --clean
 
 
-  update-<clusterName?:
+  update-<clusterName>:
     name: "update-chart-<clusterName>"
     runs-on: self-hosted
     needs: 
