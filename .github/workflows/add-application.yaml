@@ -92,36 +92,35 @@ jobs:
           path: app
           token: ${{secrets.KBOT_TOKEN}}
       
-      - name: debug-check-repo are cloned
+
+      - name: create workflow, docker file, and charts
+        env:
+          APP_REPO : ${{inputs.app_repo}}
         run: |
-          ls -laR
-  #     - name: commit workflow, docker file, and charts
-  #       env:
-  #         APP_REPO : ${{inputs.app_repo}}
-  #       run: |
-  #         cp gitops/templates/Dockerfile app/Dockerfile
+          cp gitops/templates/Dockerfile app/Dockerfile
 
-  #         # TODO create the directory if it doesn't exist
-  #         mkdir -p app/.github/workflows
-  #         cp gitops/templates/actions/publish-image.yaml app/.github/workflows/publish-image.yaml
-  #         # replace {clusterName}
-  #         sed "s/{clusterName}/$CLUSTER_NAME/g" -i app/.github/workflows/publish-image.yaml
+          # TODO create the directory if it doesn't exist
+          mkdir -p app/.github/workflows
+          cp gitops/templates/actions/publish-image.yaml app/.github/workflows/publish-image.yaml
+          # replace {clusterName}
+          sed "s/{clusterName}/$CLUSTER_NAME/g" -i app/.github/workflows/publish-image.yaml
 
-  #         cp gitops/templates/actions/publish-chart.yaml app/.github/workflows/publish-chart.yaml
+          cp gitops/templates/actions/publish-chart.yaml app/.github/workflows/publish-chart.yaml
 
-  #         mkdir -p "app/charts/$APP_NAME"
-  #         cp -r gitops/charts "app/charts/$APP_NAME"
+          mkdir -p "app/charts/$APP_NAME"
+          cp -r gitops/charts "app/charts/$APP_NAME"
 
       
-  #     - name: Commit and push changes
-  #       env:
-  #         # TOKEN needs to be update
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #         CLUSTER_NAME : ${{inputs.cluster_name}}
-  #         APP_REPO : ${{inputs.app_repo}}
-  #       run: |
-  #         git config user.name "github-actions[bot]"
-  #         git config user.email "general@konstruct.io"
-  #         git add --all
-  #         git commit -m "[skip-ci] add $APP_NAME in $CLUSTER_NAME" || echo "No changes to commit"
-  #         git push origin HEAD
+      - name: Commit and push changes
+        env:
+          # TOKEN needs to be update
+          GITHUB_TOKEN: ${{ secrets.KBOT_TOKEN }}
+          CLUSTER_NAME : ${{inputs.cluster_name}}
+          APP_REPO : ${{inputs.app_repo}}
+        run: |
+          cd ./app
+          git config user.name "github-actions[bot]"
+          git config user.email "general@konstruct.io"
+          git add --all
+          git commit -m "[skip-ci] add $APP_NAME in $CLUSTER_NAME" || echo "No changes to commit"
+          git push origin HEAD
