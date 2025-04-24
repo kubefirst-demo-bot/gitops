@@ -17,8 +17,9 @@ spec:
       values: |-
         zippy:
           image:
-          # todo hard code the repository 
-          repository: <ecr_repo>/zippy
+            # todo hard code the repository 
+            repository: <ecr_repo>/zippy
+            tag: <tag>
           ingress:
             className: nginx
             enabled: true
