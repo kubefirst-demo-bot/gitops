@@ -108,7 +108,7 @@ jobs:
           cp gitops/templates/actions/publish-chart.yaml app/.github/workflows/publish-chart.yaml
 
           mkdir -p "app/charts/$APP_NAME"
-          cp -r gitops/charts "app/charts/$APP_NAME"
+          cp -r gitops/templates/charts "app/charts/$APP_NAME"
 
       
       - name: Commit and push changes
