@@ -1,4 +1,4 @@
-name: push-artifact-to-ecr
+name: Publish Image
 on: 
   workflow_dispatch:
 
@@ -6,16 +6,19 @@ permissions:
   id-token: write
 
 env:
-  AWS_REGION : "us-west-2"
+  AWS_REGION: "us-east-2"
   # update role ARN
-  ASSUME_ROLE_ARN : "arn:aws:iam::126827061464:role/github-action-oidc-pass-app-repo"
+  ASSUME_ROLE_ARN: "arn:aws:iam::126827061464:role/github-action-oidc-pass-app-repo"
 
 jobs:
   publish-image:
     runs-on: ubuntu-latest
+    outputs:
+      registry: ${{ steps.login-ecr.outputs.registry }}
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        # TODO remove below block
         with:
           repository: "jarededwards/zippy"
           ref: "main"
@@ -26,8 +29,8 @@ jobs:
         with:
           go-version-file: go.mod
       
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      # - name: Set up QEMU
+      #   uses: docker/setup-qemu-action@v3
 
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
@@ -55,33 +58,31 @@ jobs:
           args: release --skip=validate,archive --clean
 
 
-  update-<clusterName>:
-    name: "update-chart-<clusterName>"
-    runs-on: self-hosted
+  update-{clusterName}:
+    name: "update-chart-{clusterName}"
+    runs-on: ubuntu-latest
     needs: 
-      - publish-chart-oci-format
+      - pulish-image
     env:
-      CHART_VERSION: ${{ needs.publish-chart-oci-format.outputs.CHART_VERSION }}
+      ECR_REGISTRY: ${{ needs.publish-image.outputs.registry }}
+      IMAGE_TAG: ${{ github.sha }}
     steps:
       - name: print-version
-        run: echo "Updating paas-api chart to $CHART_VERSION"
+        run: echo "Updating paas-api chart to $IMAGE_TAG"
       
       - name: checkout-gitops
         uses: actions/checkout@v4
         with:
-          repository: "konstructio-paas/gitops"
+          # TODO: remove hardcoded gitops repo
+          repository: "kubefirst-demo-bot/gitops"
           ref: main
-          token: ${{ secrets.GH_TOKEN }}
-      
-      - name: get-mikefarah-yq
-        run: |
-          wget -O yq https://github.com/mikefarah/yq/releases/download/v4.45.1/yq_linux_amd64
-          chmod u+x yq          
+          token: ${{ secrets.KBOT_TOKEN }}         
                       
-      - name: update-version
+      - name: update-image-tag
         run: |
-          ./yq -i ".spec.sources[0].targetRevision=\"$CHART_VERSION\"" registry/clusters/pd-ae2-01/components/paas-api/app.yaml
-          
+          sed "s/repository:.*/repository: $ECR_REGISTRY\/{appName}/" -i registry/clusters/{clusterName}/{appName}.yaml
+          sed "s/tag:.*/tag: $IMAGE_TAG/" -i registry/clusters/{clusterName}/{appName}.yaml
+
       - name: configure-git
         run: |
           git config --global user.email "konstruct-bot@konstruct.io"
@@ -89,8 +90,11 @@ jobs:
 
       - name: commit-and-push
         run: |
-          git add  registry/clusters/pd-ae2-01/components/paas-api/app.yaml
-          git commit -m "[skip ci]: upgrade paas-api chart to $CHART_VERSION in pd-ae2-01"
+          # TODO change the cluster name
+          git add   registry/clusters/{clusterName}/{appName}.yaml
+          git commit -m "[skip ci]: upgrade {appName} chart to $IMAGE_TAG in {clusterName}"
+
+          git push origin main
           
           git push origin main
           
