@@ -85,6 +85,8 @@ jobs:
         run: |
           sed "s/repository:.*/repository: $ECR_REGISTRY\/{appName}/" -i registry/clusters/{clusterName}/{appName}.yaml
           sed "s/tag:.*/tag: $IMAGE_TAG/" -i registry/clusters/{clusterName}/{appName}.yaml
+          sed "s/{ecr_repo}/tag: $IMAGE_TAG/" -i registry/clusters/{clusterName}/{appName}.yaml
+          sed "s/{image_tag}/$ECR_REGISTRY/" -i registry/clusters/{clusterName}/{appName}.yaml
 
       - name: configure-git
         run: |
