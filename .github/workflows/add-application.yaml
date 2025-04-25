@@ -28,9 +28,7 @@ jobs:
       - name: Validate app name
         run: echo "Validating $APP_NAME"
 
-  # change the name
   copy-over-ci:
-  # what auth should we use
     runs-on: ubuntu-latest
     # needs:
     #   - validate-inputs
@@ -41,7 +39,6 @@ jobs:
       - name: get repo path
         id: get_repo_path
         run: |
-          echo $APP_NAME
           echo "repo_path=kubefirst-demo-bot/$APP_NAME" >> $GITHUB_OUTPUT
 
       - name: Checkout gitops repository
@@ -57,50 +54,37 @@ jobs:
           token: ${{secrets.KBOT_TOKEN}}
       
 
-      - name: create workflow, docker file, and charts
-        env:
-          APP_NAME: ${{inputs.app_name}}
-          CLUSTER_NAME: ${{inputs.cluster_name}}
+      - name: create chart and github workflows
         run: |
-          cd ./app 
-          ls -la 
-          cd ../gitops
-          ls -la
+          cd ./app
+          DIR="./charts"
 
-      #     APP_NAME=$(echo "$APP_NAME" | cut -d / -f 5 | sed 's/\.git//' )
+          # Check if directory exists
+          if [ -d "$DIR" ]; then
+            echo "directory $DIR exists skipping helm chart creation"
+          else
+            echo "directory $DIR does not exist. Creating now..."
+            mkdir -p "$DIR"
+            cd "$DIR"
+            helm create $APP_NAME
+          fi
+          mkdir -p .github/workflows
+          cp gitops/templates/actions/publish.yaml .github/workflows/publish.yaml
+          echo replace cluster name and app name
+          # sed "s/{clusterName}/$CLUSTER_NAME/g" -i .github/workflows/publish.yaml
+          sed "s/{appName}/$APP_NAME/g" -i .github/workflows/publish.yaml
 
-      #     cp gitops/templates/Dockerfile app/Dockerfile
-
-      #     # TODO create the directory if it doesn't exist
-      #     mkdir -p app/.github/workflows
-      #     cp gitops/templates/actions/publish-image.yaml app/.github/workflows/publish-image.yaml
-      #     # replace {clusterName}
-      #     sed "s/{clusterName}/$CLUSTER_NAME/g" -i app/.github/workflows/publish-image.yaml
-      #     sed "s/{appName}/$APP_NAME/g" -i app/.github/workflows/publish-image.yaml
-
-      #     cp gitops/templates/actions/publish-chart.yaml app/.github/workflows/publish-chart.yaml
-      #     sed "s/{clusterName}/$CLUSTER_NAME/g" -i app/.github/workflows/publish-chart.yaml
-      #     sed "s/{appName}/$APP_NAME/g" -i app/.github/workflows/publish-chart.yaml
-
-      #     mkdir -p "app/charts/$APP_NAME"
-      #     cp -r gitops/templates/charts/* "app/charts/$APP_NAME/"
-
-      
-      # - name: Commit and push changes
-      #   env:
-      #     # TOKEN needs to be update
-      #     GITHUB_TOKEN: ${{ secrets.KBOT_TOKEN }}
-      #     CLUSTER_NAME : ${{inputs.cluster_name}}
-      #     APP_NAME : ${{inputs.app_name}}
-      #   run: |
-      #     APP_NAME=$(echo "$APP_NAME" | cut -d / -f 5 | sed 's/\.git//' )
-          
-      #     cd ./app
-      #     git config user.name "github-actions[bot]"
-      #     git config user.email "general@konstruct.io"
-      #     git add --all
-      #     git commit -m "add $APP_NAME in $CLUSTER_NAME" || echo "No changes to commit"
-      #     git push origin HEAD
+      - name: Commit and push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.KBOT_TOKEN }}
+          APP_NAME: ${{inputs.app_name}}
+        run: |
+          cd ./app
+          git config user.name "github-actions[bot]"
+          git config user.email "general@konstruct.io"
+          git add --all
+          git commit -m "add ci content for $APP_NAME" || echo "No changes to commit"
+          git push origin main
 
 
 
