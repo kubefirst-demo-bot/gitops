@@ -65,7 +65,7 @@ jobs:
     name: "update-chart-{clusterName}"
     runs-on: ubuntu-latest
     needs: 
-      - pulish-image
+      - publish-image
     env:
       ECR_REGISTRY: ${{ needs.publish-image.outputs.registry }}
       IMAGE_TAG: ${{ github.sha }}

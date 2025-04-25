@@ -59,7 +59,7 @@ jobs:
           APP_REPO : ${{inputs.app_repo}}
         run: |
           APP_NAME=$(echo "$APP_REPO" | cut -d / -f 5 | sed 's/\.git//' )
-          
+
           git config user.name "github-actions[bot]"
           git config user.email "general@konstruct.io"
           git add --all
@@ -98,6 +98,7 @@ jobs:
       - name: create workflow, docker file, and charts
         env:
           APP_REPO : ${{inputs.app_repo}}
+          CLUSTER_NAME : ${{inputs.cluster_name}}
         run: |
 
           APP_NAME=$(echo "$APP_REPO" | cut -d / -f 5 | sed 's/\.git//' )
