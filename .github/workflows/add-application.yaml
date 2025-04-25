@@ -14,55 +14,55 @@ on:
       muse-sisay/001
 
 jobs:
-  # validate-inputs:
-  #   runs-on: ubuntu-latest
-  #   # skip this for now
-  #   env:
-  #     CLUSTER_NAME : ${{inputs.cluster_name}}
-  #     APP_REPO : ${{inputs.app_repo}}
-  #   steps:
-  #     - name: Validate cluster
-  #       run: echo "Validating $CLUSTER_NAME"
-  #     - name: Validate repository
-  #       run: echo "Validating $APP_REPO"
+  validate-inputs:
+    runs-on: ubuntu-latest
+    # skip this for now
+    env:
+      CLUSTER_NAME : ${{inputs.cluster_name}}
+      APP_REPO : ${{inputs.app_repo}}
+    steps:
+      - name: Validate cluster
+        run: echo "Validating $CLUSTER_NAME"
+      - name: Validate repository
+        run: echo "Validating $APP_REPO"
 
-  # create-argo-app:
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: write
-  #   needs: 
-  #     - validate-inputs
-  #   env:
-  #     CLUSTER_NAME : ${{inputs.cluster_name}}
-  #     APP_REPO : ${{inputs.app_repo}}
-  #   steps:
-  #     - name: Check out repository code
-  #       uses: actions/checkout@v4
+  create-argo-app:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs: 
+      - validate-inputs
+    env:
+      CLUSTER_NAME : ${{inputs.cluster_name}}
+      APP_REPO : ${{inputs.app_repo}}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
       
-  #     - name: create argo app
-  #       run: |
-  #         # this assumes the endpoint is https:///
-  #         APP_NAME=$(echo "$APP_REPO" | cut -d / -f 5 | sed 's/\.git//' )
+      - name: create argo app
+        run: |
+          # this assumes the endpoint is https:///
+          APP_NAME=$(echo "$APP_REPO" | cut -d / -f 5 | sed 's/\.git//' )
 
-  #         cp ./templates/argo-app.yaml ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+          cp ./templates/argo-app.yaml ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
           
-  #         # replace {clusterName}
-  #         sed "s/{clusterName}/$CLUSTER_NAME/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+          # replace {clusterName}
+          sed "s/{clusterName}/$CLUSTER_NAME/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
 
-  #         # replace {appName}
-  #         sed "s/{appName}/$APP_NAME/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+          # replace {appName}
+          sed "s/{appName}/$APP_NAME/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
 
-  #     - name: Commit and push changes
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #         CLUSTER_NAME : ${{inputs.cluster_name}}
-  #         APP_REPO : ${{inputs.app_repo}}
-  #       run: |
-  #         git config user.name "github-actions[bot]"
-  #         git config user.email "general@konstruct.io"
-  #         git add --all
-  #         git commit -m "[skip-ci] add $APP_NAME in $CLUSTER_NAME" || echo "No changes to commit"
-  #         git push origin HEAD
+      - name: Commit and push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLUSTER_NAME : ${{inputs.cluster_name}}
+          APP_REPO : ${{inputs.app_repo}}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "general@konstruct.io"
+          git add --all
+          git commit -m "[skip-ci] add $APP_NAME in $CLUSTER_NAME" || echo "No changes to commit"
+          git push origin HEAD
 
   # change the name
   copy-over-ci:
@@ -97,6 +97,9 @@ jobs:
         env:
           APP_REPO : ${{inputs.app_repo}}
         run: |
+
+          APP_NAME=$(echo "$APP_REPO" | cut -d / -f 5 | sed 's/\.git//' )
+
           cp gitops/templates/Dockerfile app/Dockerfile
 
           # TODO create the directory if it doesn't exist
@@ -109,7 +112,7 @@ jobs:
           cp gitops/templates/actions/publish-chart.yaml app/.github/workflows/publish-chart.yaml
 
           mkdir -p "app/charts/$APP_NAME"
-          cp -r gitops/templates/charts/ "app/charts/$APP_NAME/"
+          cp -r gitops/templates/charts/* "app/charts/$APP_NAME/"
 
       
       - name: Commit and push changes

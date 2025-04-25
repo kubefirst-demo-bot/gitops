@@ -1,6 +1,9 @@
 name: Publish Image
 on: 
   workflow_dispatch:
+  push:
+    branches:
+      manin
 
 permissions:
   id-token: write
