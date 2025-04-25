@@ -127,6 +127,8 @@ jobs:
           CLUSTER_NAME : ${{inputs.cluster_name}}
           APP_REPO : ${{inputs.app_repo}}
         run: |
+          APP_NAME=$(echo "$APP_REPO" | cut -d / -f 5 | sed 's/\.git//' )
+          
           cd ./app
           git config user.name "github-actions[bot]"
           git config user.email "general@konstruct.io"
