@@ -38,11 +38,11 @@ jobs:
       CLUSTER_NAME: ${{inputs.cluster_name}}
       APP_NAME: ${{inputs.app_name}}
     steps:
-      - name: get repo url
-        id: get_repo_url
+      - name: get repo path
+        id: get_repo_path
         run: |
           echo $APP_NAME
-          echo "repo_url=https://github.com/kubefirst-demo-bot/$APP_NAME" >> $GITHUB_OUTPUT
+          echo "repo_path=kubefirst-demo-bot/$APP_NAME" >> $GITHUB_OUTPUT
 
       - name: Checkout gitops repository
         uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
       - name: Checkout app repository
         uses: actions/checkout@v4
         with:
-          repository: ${{steps.get_repo_url.outputs.repo_url}}
+          repository: ${{steps.get_repo_path.outputs.repo_path}}
           path: app
           token: ${{secrets.KBOT_TOKEN}}
       
