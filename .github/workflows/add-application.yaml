@@ -20,8 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     # skip this for now
     env:
-      CLUSTER_NAME : ${{inputs.cluster_name}}
-      APP_NAME : ${{inputs.app_name}}
+      CLUSTER_NAME: ${{inputs.cluster_name}}
+      APP_NAME: ${{inputs.app_name}}
     steps:
       - name: Validate cluster
         run: echo "Validating $CLUSTER_NAME"
@@ -35,12 +35,13 @@ jobs:
     # needs:
     #   - validate-inputs
     env:
-      CLUSTER_NAME : ${{inputs.cluster_name}}
-      APP_NAME : ${{inputs.app_name}}
+      CLUSTER_NAME: ${{inputs.cluster_name}}
+      APP_NAME: ${{inputs.app_name}}
     steps:
       - name: get repo url
         id: get_repo_url
         run: |
+          echo $APP_NAME
           echo "repo_url=https://github.com/kubefirst-demo-bot/$APP_NAME" >> $GITHUB_OUTPUT
 
       - name: Checkout gitops repository
