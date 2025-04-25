@@ -69,7 +69,7 @@ jobs:
             helm create $APP_NAME
           fi
           mkdir -p .github/workflows
-          cp gitops/templates/actions/publish.yaml .github/workflows/publish.yaml
+          cp ../gitops/templates/actions/publish.yaml .github/workflows/publish.yaml
           echo replace cluster name and app name
           # sed "s/{clusterName}/$CLUSTER_NAME/g" -i .github/workflows/publish.yaml
           sed "s/{appName}/$APP_NAME/g" -i .github/workflows/publish.yaml
