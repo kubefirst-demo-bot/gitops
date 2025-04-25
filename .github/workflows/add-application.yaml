@@ -67,6 +67,7 @@ jobs:
             mkdir -p "$DIR"
             cd "$DIR"
             helm create $APP_NAME
+            cd ..
           fi
           mkdir -p .github/workflows
           cp ../gitops/templates/actions/publish.yaml .github/workflows/publish.yaml
