@@ -6,7 +6,7 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd.argoproj.io/sync-wave: "20"
+    argocd.argoproj.io/sync-wave: '20'
 spec:
   project: default
   source:
@@ -18,8 +18,8 @@ spec:
         zippy:
           image:
             # todo hard code the repository 
-            repository: 126827061464.dkr.ecr.us-east-2.amazonaws.com/zippy
-            tag: 498c67b98d135b818efabb8092ee4e343bcba2cf
+            repository: <ecr_repo>/zippy
+            tag: <image_tag>
           ingress:
             className: nginx
             enabled: true
