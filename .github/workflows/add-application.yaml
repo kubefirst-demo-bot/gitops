@@ -35,13 +35,12 @@ jobs:
     # needs:
     #   - validate-inputs
     steps:
-      # - name: Extract owner/repo#! jared did it
-      #   id: extract_repo
-      #   run: |
-      #     # TODO remove hardcoded repo name
-      #     APP_NAME="https://github.com/kubefirst-demo-bot/zippy"
-      #     stripped=$(echo "https://github.com/kubefirst-demo-bot/zippy" | cut -d / -f 4,5)
-      #     echo "owner_repo=$stripped" >> $GITHUB_OUTPUT
+      - name: get repo url
+        env:
+          APP_NAME: ${{inputs.app_name}}
+        id: get_repo_url
+        run: |
+          echo "repo_url=https://github.com/kubefirst-demo-bot/$APP_NAME" >> $GITHUB_OUTPUT
 
 
       - name: Checkout gitops repo
@@ -52,7 +51,7 @@ jobs:
       - name: Check app repository code
         uses: actions/checkout@v4
         with:
-          repository: https://github.com/kubefirst-demo-bot/${{inputs.app_name}}
+          repository: ${{steps.get_repo_url.outputs.repo_url}}
           path: app
           token: ${{secrets.KBOT_TOKEN}}
       
