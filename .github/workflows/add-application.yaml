@@ -6,8 +6,10 @@ on:
       app_name:
         description: 'Application repository name'
         required: true
+        default: 'zippy2'
       cluster_name:
         description: 'Cluster name'
+        default: 'show-me-the-minutes'
         required: true
   push:
     branches:
@@ -49,10 +51,8 @@ jobs:
 
       - name: Check app repository code
         uses: actions/checkout@v4
-        env:
-          APP_NAME: ${{inputs.app_name}}
         with:
-          repository: https://github.com/kubefirst-demo-bot/$APP_NAME
+          repository: https://github.com/kubefirst-demo-bot/${{inputs.app_name}}
           path: app
           token: ${{secrets.KBOT_TOKEN}}
       
