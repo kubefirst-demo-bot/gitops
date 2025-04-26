@@ -5,10 +5,6 @@ env:
   # update role ARN
   ASSUME_ROLE_ARN: "arn:aws:iam::126827061464:role/github-action-oidc-pass-app-repo"
 
-permissions:
-  id-token: write
-  contents: read
-
 on:
   workflow_dispatch:
     inputs:
@@ -97,7 +93,8 @@ jobs:
   create-argo-app:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      id-token: write
+      contents: read
     # needs: 
     #   - validate-inputs
     env:
