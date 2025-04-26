@@ -85,7 +85,7 @@ jobs:
   #         git commit -m "add ci content for $APP_NAME" || echo "No changes to commit"
   #         git push origin main
 
-create-argo-app:
+  create-argo-app:
     runs-on: ubuntu-latest
     permissions:
       contents: write
