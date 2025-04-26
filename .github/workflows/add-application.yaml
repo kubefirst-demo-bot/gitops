@@ -11,118 +11,137 @@ on:
         description: 'Cluster name'
         default: 'show-me-the-minutes'
         required: true
+  push:
+    branches:
+      - main
 
 jobs:
-  validate-inputs:
-    runs-on: ubuntu-latest
-    env:
-      CLUSTER_NAME: ${{inputs.cluster_name}}
-      APP_NAME: ${{inputs.app_name}}
-    steps:
-      - name: Validate cluster
-        run: echo "Validating $CLUSTER_NAME"
-      - name: Validate app name
-        run: echo "Validating $APP_NAME"
+  # validate-inputs:
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     CLUSTER_NAME: ${{inputs.cluster_name}}
+  #     APP_NAME: ${{inputs.app_name}}
+  #   steps:
+  #     - name: Validate cluster
+  #       run: echo "Validating $CLUSTER_NAME"
+  #     - name: Validate app name
+  #       run: echo "Validating $APP_NAME"
 
-  copy-over-ci:
-    runs-on: ubuntu-latest
-    env:
-      CLUSTER_NAME: ${{inputs.cluster_name}}
-      APP_NAME: ${{inputs.app_name}}
-    steps:
-      - name: get repo path
-        id: get_repo_path
-        run: |
-          echo "repo_path=kubefirst-demo-bot/$APP_NAME" >> $GITHUB_OUTPUT
+  # copy-over-ci:
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     CLUSTER_NAME: ${{inputs.cluster_name}}
+  #     APP_NAME: ${{inputs.app_name}}
+  #   steps:
+  #     - name: get repo path
+  #       id: get_repo_path
+  #       run: |
+  #         echo "repo_path=kubefirst-demo-bot/$APP_NAME" >> $GITHUB_OUTPUT
 
-      - name: Checkout gitops repository
-        uses: actions/checkout@v4
-        with:
-          path: gitops
+  #     - name: Checkout gitops repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         path: gitops
 
-      - name: Checkout app repository
-        uses: actions/checkout@v4
-        with:
-          repository: ${{steps.get_repo_path.outputs.repo_path}}
-          path: app
-          token: ${{secrets.KBOT_TOKEN}}
+  #     - name: Checkout app repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         repository: ${{steps.get_repo_path.outputs.repo_path}}
+  #         path: app
+  #         token: ${{secrets.KBOT_TOKEN}}
       
 
-      - name: create chart and github workflows
+  #     - name: create chart and github workflows
+  #       run: |
+  #         cd ./app
+  #         DIR="./charts"
+
+  #         # Check if directory exists
+  #         if [ -d "$DIR" ]; then
+  #           echo "directory $DIR exists skipping helm chart creation"
+  #         else
+  #           echo "directory $DIR does not exist. Creating now..."
+  #           mkdir -p "$DIR"
+  #           cd "$DIR"
+  #           helm create $APP_NAME
+  #           cd ..
+  #         fi
+  #         mkdir -p .github/workflows
+  #         cp ../gitops/templates/actions/publish.yaml .github/workflows/publish.yaml
+  #         cp ../gitops/templates/actions/deploy.yaml .github/workflows/deploy.yaml
+  #         echo replace cluster name and app name
+  #         # sed "s/{clusterName}/$CLUSTER_NAME/g" -i .github/workflows/publish.yaml
+  #         sed "s/{appName}/$APP_NAME/g" -i .github/workflows/publish.yaml
+
+  #     - name: Commit and push changes
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.KBOT_TOKEN }}
+  #         APP_NAME: ${{inputs.app_name}}
+  #       run: |
+  #         cd ./app
+  #         git config user.name "github-actions[bot]"
+  #         git config user.email "general@konstruct.io"
+  #         git add --all
+  #         git commit -m "add ci content for $APP_NAME" || echo "No changes to commit"
+  #         git push origin main
+
+create-argo-app:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    # needs: 
+    #   - validate-inputs
+    env:
+      CLUSTER_NAME : ${{inputs.cluster_name}}
+      APP_NAME : ${{inputs.app_name}}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: get-aws-cli
         run: |
-          cd ./app
-          DIR="./charts"
-
-          # Check if directory exists
-          if [ -d "$DIR" ]; then
-            echo "directory $DIR exists skipping helm chart creation"
-          else
-            echo "directory $DIR does not exist. Creating now..."
-            mkdir -p "$DIR"
-            cd "$DIR"
-            helm create $APP_NAME
-            cd ..
-          fi
-          mkdir -p .github/workflows
-          cp ../gitops/templates/actions/publish.yaml .github/workflows/publish.yaml
-          echo replace cluster name and app name
-          # sed "s/{clusterName}/$CLUSTER_NAME/g" -i .github/workflows/publish.yaml
-          sed "s/{appName}/$APP_NAME/g" -i .github/workflows/publish.yaml
-
-      - name: Commit and push changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.KBOT_TOKEN }}
-          APP_NAME: ${{inputs.app_name}}
-        run: |
-          cd ./app
-          git config user.name "github-actions[bot]"
-          git config user.email "general@konstruct.io"
-          git add --all
-          git commit -m "add ci content for $APP_NAME" || echo "No changes to commit"
-          git push origin main
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip -q awscliv2.zip
+          sudo ./aws/install --update
+          aws --version
 
 
-
-
-
-
-
-# create-argo-app:
-#     runs-on: ubuntu-latest
-#     permissions:
-#       contents: write
-#     needs: 
-#       - validate-inputs
-#     env:
-#       CLUSTER_NAME : ${{inputs.cluster_name}}
-#       APP_NAME : ${{inputs.app_name}}
-#     steps:
-#       - name: Check out repository code
-#         uses: actions/checkout@v4
       
-#       - name: create argo app
-#         run: |
-#           # this assumes the endpoint is https:///
-#           APP_NAME=$(echo "$APP_NAME" | cut -d / -f 5 | sed 's/\.git//' )
-
-#           cp ./templates/argo-app.yaml ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+      # - name: create argo app
+      #   run: |
           
-#           # replace {clusterName}
-#           sed "s/{clusterName}/$CLUSTER_NAME/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+      #     SHORT_SHA=$(aws ecr describe-images \
+      #       --repository-name kubefirst-demo-bot/zippy2 \
+      #       --query 'sort_by(imageDetails,& imagePushedAt)[-1].{Tag:imageTags[0],PushedAt:imagePushedAt}' \
+      #       --output json | jq .Tag)
+          
+      #     CHART_VERSION=$(aws ecr describe-images \
+      #       --repository-name kubefirst-demo-bot/charts/zippy2 \
+      #       --query 'sort_by(imageDetails,& imagePushedAt)[-1].{Tag:imageTags[0],PushedAt:imagePushedAt}' \
+      #       --output json | jq .Tag)
 
-#           # replace {appName}
-#           sed "s/{appName}/$APP_NAME/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+      #     REGISTRY_URL=$(aws ecr describe-repositories --query 'repositories[?contains(repositoryName, `kubefirst-demo-bot/zippy2`)].repositoryUri' --output table )
 
-#       - name: Commit and push changes
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#           CLUSTER_NAME : ${{inputs.cluster_name}}
-#           APP_NAME : ${{inputs.app_name}}
-#         run: |
-#           APP_NAME=$(echo "$APP_NAME" | cut -d / -f 5 | sed 's/\.git//' )
+      #     cp ./templates/argo-app.yaml ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
 
-#           git config user.name "github-actions[bot]"
-#           git config user.email "general@konstruct.io"
-#           git add --all
-#           git commit -m "[skip-ci] add $APP_NAME in $CLUSTER_NAME" || echo "No changes to commit"
-#           git push origin HEAD
+
+          
+      #     sed "s/{clusterName}/$CLUSTER_NAME/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+      #     sed "s/{appName}/$APP_NAME/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+      #     sed "s/{repoURL}/$REGISTRY_URL/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+      #     sed "s/{targetRevision}/$CHART_VERSION/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+      #     sed "s/{short_sha}/$SHORT_SHA/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+
+      # - name: Commit and push changes
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     CLUSTER_NAME : ${{inputs.cluster_name}}
+      #     APP_NAME : ${{inputs.app_name}}
+      #   run: |
+      #     APP_NAME=$(echo "$APP_NAME" | cut -d / -f 5 | sed 's/\.git//' )
+
+      #     git config user.name "github-actions[bot]"
+      #     git config user.email "general@konstruct.io"
+      #     git add --all
+      #     git commit -m "[skip-ci] add $APP_NAME in $CLUSTER_NAME" || echo "No changes to commit"
+      #     git push origin HEAD

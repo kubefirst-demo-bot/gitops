@@ -6,29 +6,26 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd.argoproj.io/sync-wave: '20'
+    argocd.argoproj.io/sync-wave: '10'
 spec:
   project: default
   source:
-    repoURL: repo-url # sed replaced later on from the application action
+    repoURL: {repoURL}
     chart: {appName}
-    targetRevision: target-revision
+    targetRevision: {targetRevision}
     helm:
       values: |-
         {appName}:
           image:
             # todo hard code the repository 
             repository: {ecr_repo}/{appName}
-            tag: {image_tag}
+            tag: {short_sha}
           ingress:
             className: nginx
             enabled: true
             annotations:
               nginx.ingress.kubernetes.io/service-upstream: "true"
-              cert-manager.io/issuer: cloudflare-origin-issuer
-              cert-manager.io/issuer-kind: OriginIssuer
-              cert-manager.io/issuer-group: cert-manager.k8s.cloudflare.com
-              external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+              cert-manager.io/issuer: letsencrypt-prod
             hosts:
               - host: {appName}-{clusterName}.gitopsmagic.com
                 paths:
@@ -40,7 +37,7 @@ spec:
                   - {appName}-{clusterName}.gitopsmagic.com
   destination:
     name: {clusterName}
-    namespace: development # hard coded for now
+    namespace: development
   syncPolicy:
     automated:
       prune: true
