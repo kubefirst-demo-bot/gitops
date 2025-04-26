@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       registry: ${{ steps.login-ecr.outputs.registry }}
+      chart_version: ${{ steps.publish-chart.outputs.chart_version }}
+      repo_name: ${{ steps.extract-repo-name.outputs.repo_name }}
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -56,11 +58,11 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ steps.extract-repo-name.outputs.repo_name }}
           IMAGE_TAG: ${{ github.sha }}
+          REPO_OWNER: ${{ github.repository_owner }}
         run: |
-          # fix github.author user to be dyanmic
           SHORT_SHA=$(echo "$IMAGE_TAG" | cut -c1-7)
-          docker build -t $ECR_REGISTRY/kubefirst-demo-bot/$ECR_REPOSITORY:$SHORT_SHA .
-          docker push $ECR_REGISTRY/kubefirst-demo-bot/$ECR_REPOSITORY:$SHORT_SHA
+          docker build -t $ECR_REGISTRY/$REPO_OWNER/$ECR_REPOSITORY:$SHORT_SHA .
+          docker push $ECR_REGISTRY/$REPO_OWNER/$ECR_REPOSITORY:$SHORT_SHA
 
       - name: push-chart-to-ecr
         id: publish-chart
@@ -78,49 +80,6 @@ jobs:
           CHART_VERSION=$(cat Chart.yaml | grep "^version" | cut -f 2 -d " ")
           CHART_ARCHIVE_FILE="$CHART_NAME"-"$CHART_VERSION".tgz
 
-          helm push "$CHART_ARCHIVE_FILE" "oci://$ECR_REGISTRY/kubefirst-demo-bot/charts"
+          helm push "$CHART_ARCHIVE_FILE" "oci://$ECR_REGISTRY/$REPO_OWNER/charts"
 
           echo "chart_version=$CHART_VERSION" >> $GITHUB_OUTPUT
-
-
-  # update-{clusterName}:
-  #   name: "update-chart-{clusterName}"
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     - publish-image
-  #   env:
-  #     ECR_REGISTRY: ${{ needs.publish-image.outputs.registry }}
-  #     IMAGE_TAG: ${{ github.sha }}
-  #   steps:
-  #     - name: print-version
-  #       run: echo "Updating paas-api chart to $IMAGE_TAG"
-
-  #     - name: checkout-gitops
-  #       uses: actions/checkout@v4
-  #       with:
-  #         # TODO: remove hardcoded gitops repo
-  #         repository: "kubefirst-demo-bot/gitops"
-  #         ref: main
-  #         token: ${{ secrets.KBOT_TOKEN }}
-
-  #     - name: update-image-tag
-  #       run: |
-  #         sed "s/repository:.*/repository: $ECR_REGISTRY\/{appName}/" -i registry/clusters/{clusterName}/{appName}.yaml
-  #         sed "s/tag:.*/tag: $IMAGE_TAG/" -i registry/clusters/{clusterName}/{appName}.yaml
-  #         sed "s/{ecr_repo}/tag: $IMAGE_TAG/" -i registry/clusters/{clusterName}/{appName}.yaml
-  #         sed "s/{image_tag}/$ECR_REGISTRY/" -i registry/clusters/{clusterName}/{appName}.yaml
-
-  #     - name: configure-git
-  #       run: |
-  #         git config --global user.email "konstruct-bot@konstruct.io"
-  #         git config --global user.name "konstruct-bot"
-
-  #     - name: commit-and-push
-  #       run: |
-  #         # TODO change the cluster name
-  #         git add   registry/clusters/{clusterName}/{appName}.yaml
-  #         git commit -m "[skip ci]: upgrade {appName} chart to $IMAGE_TAG in {clusterName}"
-
-  #         git push origin main
-
-  #         git push origin main

@@ -1,0 +1,65 @@
+name: Publish image and helm chart to ECR
+on:
+  workflow_dispatch:
+    inputs:
+      app_name:
+        description: 'chart version'
+        required: true
+        default: ''
+      cluster_name:
+        description: 'cluster name to deliver to'
+        default: 'show-me-the-minutes'
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: "us-east-2"
+  # update role ARN
+  ASSUME_ROLE_ARN: "arn:aws:iam::126827061464:role/github-action-oidc-pass-app-repo"
+
+jobs:
+  deploy:
+    name: "update-{appName}-chart"
+    runs-on: ubuntu-latest
+    needs: publish
+    env:
+      ECR_REGISTRY: ${{ needs.publish.outputs.registry }}
+      CHART_VERSION: ${{ needs.publish.outputs.chart_version }}
+      REPO_NAME: ${{ needs.publish.outputs.repo_name }}
+      IMAGE_TAG: ${{ github.sha }}
+    steps:
+      - name: print-version
+        run: echo "Updating $REPO_NAME chart to $IMAGE_TAG"
+
+      - name: checkout-gitops
+        uses: actions/checkout@v4
+        with:
+          # TODO: remove hardcoded gitops repo
+          repository: "$REPO_OWNER/gitops"
+          ref: main
+          token: ${{ secrets.KBOT_TOKEN }}
+
+      - name: update-tag
+        run: |
+          sed "s/repository:.*/repository: $ECR_REGISTRY\/{appName}/" -i registry/clusters/{clusterName}/{appName}.yaml
+          sed "s/tag:.*/tag: $IMAGE_TAG/" -i registry/clusters/{clusterName}/{appName}.yaml
+          sed "s/{ecr_repo}/tag: $IMAGE_TAG/" -i registry/clusters/{clusterName}/{appName}.yaml
+          sed "s/{image_tag}/$ECR_REGISTRY/" -i registry/clusters/{clusterName}/{appName}.yaml
+
+      - name: configure-git
+        run: |
+          git config --global user.email "konstruct-bot@konstruct.io"
+          git config --global user.name "konstruct-bot"
+
+      - name: commit-and-push
+        run: |
+          # TODO change the cluster name
+          git add   registry/clusters/{clusterName}/{appName}.yaml
+          git commit -m "[skip ci]: upgrade {appName} chart to $IMAGE_TAG in {clusterName}"
+
+          git push origin main
+
+          git push origin main
