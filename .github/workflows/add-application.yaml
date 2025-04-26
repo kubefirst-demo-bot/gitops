@@ -54,7 +54,7 @@ jobs:
   #         repository: ${{steps.get_repo_path.outputs.repo_path}}
   #         path: app
   #         token: ${{secrets.KBOT_TOKEN}}
-      
+
 
   #     - name: create chart and github workflows
   #       run: |
@@ -95,7 +95,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    # needs: 
+    # needs:
     #   - validate-inputs
     env:
       CLUSTER_NAME : ${{inputs.cluster_name}}
@@ -117,31 +117,33 @@ jobs:
           role-to-assume: ${{ env.ASSUME_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      
+
       - name: create argo app
         run: |
-          
+
           SHORT_SHA=$(aws ecr describe-images \
             --repository-name kubefirst-demo-bot/zippy2 \
-            --query 'sort_by(imageDetails,& imagePushedAt)[-1].{Tag:imageTags[0],PushedAt:imagePushedAt}' \
-            --output json | jq .Tag)
-          
+            --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' \
+            --output text)
+
           CHART_VERSION=$(aws ecr describe-images \
             --repository-name kubefirst-demo-bot/charts/zippy2 \
-            --query 'sort_by(imageDetails,& imagePushedAt)[-1].{Tag:imageTags[0],PushedAt:imagePushedAt}' \
-            --output json | jq .Tag)
+            --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' \
+            --output text)
 
-          REGISTRY_URL=$(aws ecr describe-repositories --query 'repositories[?contains(repositoryName, `kubefirst-demo-bot/zippy2`)].repositoryUri' --output table )
+          REGISTRY_URL=$(aws ecr describe-repositories \
+            --query 'repositories[?repositoryName==`kubefirst-demo-bot/zippy2`].repositoryUri' \
+            --output text)
 
           cp ./templates/argo-app.yaml ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
 
+          ESCAPED_REGISTRY_URL=$(echo $REGISTRY_URL | sed 's/\//\\\//g')
 
-          
-          sed "s/{clusterName}/$CLUSTER_NAME/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
-          sed "s/{appName}/$APP_NAME/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
-          sed "s/{repoURL}/$REGISTRY_URL/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
-          sed "s/{targetRevision}/$CHART_VERSION/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
-          sed "s/{short_sha}/$SHORT_SHA/g" -i ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+          sed -i "s/{clusterName}/$CLUSTER_NAME/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+          sed -i "s/{appName}/$APP_NAME/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+          sed -i "s/{repoURL}/$ESCAPED_REGISTRY_URL/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+          sed -i "s/{targetRevision}/$CHART_VERSION/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+          sed -i "s/{short_sha}/$SHORT_SHA/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
 
           cat ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
 
