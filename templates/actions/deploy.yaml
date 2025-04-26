@@ -2,7 +2,7 @@ name: Publish image and helm chart to ECR
 on:
   workflow_dispatch:
     inputs:
-      app_name:
+      chart_version:
         description: 'chart version'
         required: true
         default: ''

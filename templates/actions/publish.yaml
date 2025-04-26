@@ -69,6 +69,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
+          REPO_OWNER: ${{ github.repository_owner }}
         run: |
           cd charts/{appName}
           SHORT_SHA=$(echo "$IMAGE_TAG" | cut -c1-7)
