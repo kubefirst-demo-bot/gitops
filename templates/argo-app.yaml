@@ -17,8 +17,7 @@ spec:
       values: |-
         {appName}:
           image:
-            # todo hard code the repository 
-            repository: {ecr_repo}/{appName}
+            repository: {repoURL}
             tag: {short_sha}
           ingress:
             className: nginx
