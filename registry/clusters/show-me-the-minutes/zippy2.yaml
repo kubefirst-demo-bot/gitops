@@ -10,14 +10,14 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 126827061464.dkr.ecr.us-east-2.amazonaws.com/kubefirst-demo-bot
+    repoURL: 126827061464.dkr.ecr.us-east-2.amazonaws.com/kubefirst-demo-bot/charts
     chart: zippy2
     targetRevision: 0.1.0-rc.081c5e9
     helm:
       values: |-
         zippy2:
           image:
-            repository: 126827061464.dkr.ecr.us-east-2.amazonaws.com/kubefirst-demo-bot
+            repository: 126827061464.dkr.ecr.us-east-2.amazonaws.com/kubefirst-demo-bot/zippy2
             tag: 081c5e9
           ingress:
             className: nginx
