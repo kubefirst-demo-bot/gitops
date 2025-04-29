@@ -18,7 +18,7 @@ permissions:
 env:
   AWS_REGION: "us-east-2"
   # update role ARN
-  ASSUME_ROLE_ARN: "arn:aws:iam::746669190615:role/github-action-oidc-pass-app-repo"
+  ASSUME_ROLE_ARN: "arn:aws:iam::746669190615:role/github-action-oidc-paas-app-repo"
 
 jobs:
   deploy:
