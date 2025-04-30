@@ -1,4 +1,4 @@
-name: Deploy a chart to a cluster
+name: Deploy chart to a cluster
 on:
   workflow_dispatch:
     inputs:
@@ -10,56 +10,32 @@ on:
         description: 'cluster name to deliver to'
         default: 'show-me-the-minutes'
         required: true
-
-permissions:
-  id-token: write
-  contents: read
-
-env:
-  AWS_REGION: "us-east-2"
-  # update role ARN
-  ASSUME_ROLE_ARN: "arn:aws:iam::746669190615:role/github-action-oidc-paas-app-repo"
-
 jobs:
   deploy:
-    name: "update-{appName}-chart"
+    name: "update-chart"
     runs-on: ubuntu-latest
-    needs: publish
-    env:
-      ECR_REGISTRY: ${{ needs.publish.outputs.registry }}
-      CHART_VERSION: ${{ needs.publish.outputs.chart_version }}
-      REPO_NAME: ${{ needs.publish.outputs.repo_name }}
-      IMAGE_TAG: ${{ github.sha }}
     steps:
-      - name: print-version
-        run: echo "Updating $REPO_NAME chart to $IMAGE_TAG"
+      - name: Extract and print just the repository name
+        id: extract-repo-name
+        run: echo "repo_name=${GITHUB_REPOSITORY#*/}" >> $GITHUB_OUTPUT
 
       - name: checkout-gitops
         uses: actions/checkout@v4
         with:
-          # TODO: remove hardcoded gitops repo
-          repository: "$REPO_OWNER/gitops"
+          repository: "${{ github.repository_owner }}/gitops"
           ref: main
           token: ${{ secrets.KBOT_TOKEN }}
 
       - name: update-tag
+        env:
+          REPO_NAME: ${{ steps.extract-repo-name.outputs.repo_name }}
         run: |
-          sed "s/repository:.*/repository: $ECR_REGISTRY\/{appName}/" -i registry/clusters/{clusterName}/{appName}.yaml
-          sed "s/tag:.*/tag: $IMAGE_TAG/" -i registry/clusters/{clusterName}/{appName}.yaml
-          sed "s/{ecr_repo}/tag: $IMAGE_TAG/" -i registry/clusters/{clusterName}/{appName}.yaml
-          sed "s/{image_tag}/$ECR_REGISTRY/" -i registry/clusters/{clusterName}/{appName}.yaml
+          sed "s/targetRevision:.*/targetRevision: ${{inputs.chart_version}}/" -i registry/clusters/${{inputs.cluster_name}}/$REPO_NAME.yaml
 
-      - name: configure-git
-        run: |
           git config --global user.email "konstruct-bot@konstruct.io"
           git config --global user.name "konstruct-bot"
 
-      - name: commit-and-push
-        run: |
-          # TODO change the cluster name
-          git add   registry/clusters/{clusterName}/{appName}.yaml
-          git commit -m "[skip ci]: upgrade {appName} chart to $IMAGE_TAG in {clusterName}"
-
-          git push origin main
+          git add   registry/clusters/${{inputs.cluster_name}}/$REPO_NAME.yaml
+          git commit -m "[skip ci]: upgrade $REPO_NAME chart to ${{inputs.chart_version}} in ${{inputs.cluster_name}}"
 
           git push origin main

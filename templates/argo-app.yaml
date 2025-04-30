@@ -18,7 +18,6 @@ spec:
         {appName}:
           image:
             repository: {repoURL}
-            tag: {short_sha}
           ingress:
             className: nginx
             enabled: true
