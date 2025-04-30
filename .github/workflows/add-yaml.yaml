@@ -84,5 +84,7 @@ jobs:
           git add --all
           git commit -m "[skip-ci] add $APP_NAME in $CLUSTER_NAME" || echo "No changes to commit"
           git push origin HEAD
+          rm -rf awscliv2.zip
+          rm -rf aws
 
 
