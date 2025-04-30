@@ -1,44 +1,44 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: zippy2-show-me-the-minutes
-  namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
-  annotations:
-    argocd.argoproj.io/sync-wave: '10'
-spec:
-  project: default
-  source:
-    repoURL: 746669190615.dkr.ecr.us-east-2.amazonaws.com/kubefirst-demo-bot/charts
-    chart: zippy2
-    targetRevision: 0.1.0-rc.7514a46
-    helm:
-      values: |-
-        zippy2:
-          image:
-            repository: 746669190615.dkr.ecr.us-east-2.amazonaws.com/kubefirst-demo-bot/zippy2
-          ingress:
-            className: nginx
-            enabled: true
-            annotations:
-              nginx.ingress.kubernetes.io/service-upstream: "true"
-              cert-manager.io/issuer: letsencrypt-prod
-            hosts:
-              - host: zippy2-show-me-the-minutes.gitopsmagic.com
-                paths:
-                  - path: /
-                    pathType: Prefix
-            tls:
-              - secretName: zippy2-tls
-                hosts:
-                  - zippy2-show-me-the-minutes.gitopsmagic.com
-  destination:
-    name: show-me-the-minutes
-    namespace: development
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: zippy2-show-me-the-minutes
+#   namespace: argocd
+#   finalizers:
+#     - resources-finalizer.argocd.argoproj.io
+#   annotations:
+#     argocd.argoproj.io/sync-wave: '10'
+# spec:
+#   project: default
+#   source:
+#     repoURL: 746669190615.dkr.ecr.us-east-2.amazonaws.com/kubefirst-demo-bot/charts
+#     chart: zippy2
+#     targetRevision: 0.1.0-rc.7514a46
+#     helm:
+#       values: |-
+#         zippy2:
+#           image:
+#             repository: 746669190615.dkr.ecr.us-east-2.amazonaws.com/kubefirst-demo-bot/zippy2
+#           ingress:
+#             className: nginx
+#             enabled: true
+#             annotations:
+#               nginx.ingress.kubernetes.io/service-upstream: "true"
+#               cert-manager.io/issuer: letsencrypt-prod
+#             hosts:
+#               - host: zippy2-show-me-the-minutes.gitopsmagic.com
+#                 paths:
+#                   - path: /
+#                     pathType: Prefix
+#             tls:
+#               - secretName: zippy2-tls
+#                 hosts:
+#                   - zippy2-show-me-the-minutes.gitopsmagic.com
+#   destination:
+#     name: show-me-the-minutes
+#     namespace: development
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#     syncOptions:
+#       - CreateNamespace=true
