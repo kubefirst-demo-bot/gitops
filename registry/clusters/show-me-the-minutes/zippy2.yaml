@@ -12,13 +12,12 @@ spec:
   source:
     repoURL: 746669190615.dkr.ecr.us-east-2.amazonaws.com/kubefirst-demo-bot/charts
     chart: zippy2
-    targetRevision: 0.1.0-rc.b863b5b
+    targetRevision: 0.1.0-rc.7514a46
     helm:
       values: |-
         zippy2:
           image:
             repository: 746669190615.dkr.ecr.us-east-2.amazonaws.com/kubefirst-demo-bot/zippy2
-            tag: 081c5e9
           ingress:
             className: nginx
             enabled: true
