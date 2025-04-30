@@ -84,7 +84,7 @@ jobs:
           APP_NAME: ${{inputs.app_name}}
         run: |
           cd ./app
-          git config user.name "github-actions[bot]"
+          git config user.name "kubefirst-demo-bot"
           git config user.email "general@konstruct.io"
           git add --all
           git commit -m "add ci content for $APP_NAME" || echo "No changes to commit"

@@ -4,6 +4,8 @@ env:
   AWS_REGION: "us-east-2"
   # update role ARN
   ASSUME_ROLE_ARN: "arn:aws:iam::746669190615:role/github-action-oidc-paas-app-repo"
+  ECR_CHART_REPO_URL: "746669190615.dkr.ecr.us-east-2.amazonaws.com/kubefirst-demo-bot/charts"
+  ECR_IMAGE_REPO_URL: "746669190615.dkr.ecr.us-east-2.amazonaws.com/kubefirst-demo-bot"
 
 on:
   workflow_dispatch:
@@ -25,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: read
+      contents: write
     # needs:
     #   - validate-inputs
     env:
@@ -62,33 +64,25 @@ jobs:
             --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' \
             --output text)
 
-          REGISTRY_URL=$(aws ecr describe-repositories \
-            --query 'repositories[?repositoryName==`kubefirst-demo-bot/zippy2`].repositoryUri' \
-            --output text)
+          REGISTRY_URL=$ECR_CHART_REPO_URL
 
           cp ./templates/argo-app.yaml ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
 
           ESCAPED_REGISTRY_URL=$(echo $REGISTRY_URL | sed 's/\//\\\//g')
+          ESCAPED_IMAGE_URL=$(echo $ECR_IMAGE_REPO_URL | sed 's/\//\\\//g')
 
           sed -i "s/{clusterName}/$CLUSTER_NAME/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
           sed -i "s/{appName}/$APP_NAME/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
-          sed -i "s/{repoURL}/$ESCAPED_REGISTRY_URL/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+          sed -i "s/{chartRepoURL}/$ESCAPED_REGISTRY_URL/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+          sed -i "s/{imageRepoURL}/$ESCAPED_IMAGE_URL/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
           sed -i "s/{targetRevision}/$CHART_VERSION/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
           sed -i "s/{short_sha}/$SHORT_SHA/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
 
           cat ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
-          git config user.name "github-actions[bot]"
+          git config user.name "kubefirst-demo-bot"
           git config user.email "general@konstruct.io"
           git add --all
           git commit -m "[skip-ci] add $APP_NAME in $CLUSTER_NAME" || echo "No changes to commit"
           git push origin HEAD
-
-      - name: Commit and push changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CLUSTER_NAME : ${{inputs.cluster_name}}
-          APP_NAME : ${{inputs.app_name}}
-        run: |
-          APP_NAME=$(echo "$APP_NAME" | cut -d / -f 5 | sed 's/\.git//' )
 
 

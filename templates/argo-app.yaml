@@ -10,14 +10,14 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: {repoURL}
+    repoURL: {chartRepoURL}
     chart: {appName}
     targetRevision: {targetRevision}
     helm:
       values: |-
         {appName}:
           image:
-            repository: {repoURL}
+            repository: {imageRepoURL}/{appName}
           ingress:
             className: nginx
             enabled: true
@@ -35,7 +35,7 @@ spec:
                   - {appName}-{clusterName}.gitopsmagic.com
   destination:
     name: {clusterName}
-    namespace: development
+    namespace: kubefirst
   syncPolicy:
     automated:
       prune: true
