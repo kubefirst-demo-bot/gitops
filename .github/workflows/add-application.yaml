@@ -55,7 +55,6 @@ jobs:
           path: app
           token: ${{secrets.KBOT_TOKEN}}
 
-
       - name: create chart and github workflows
         run: |
           cd ./app
@@ -71,6 +70,7 @@ jobs:
             helm create $APP_NAME
             cd ..
           fi
+          
           mkdir -p .github/workflows
           cp ../gitops/templates/actions/publish.yaml .github/workflows/publish.yaml
           cp ../gitops/templates/actions/deploy.yaml .github/workflows/deploy.yaml
