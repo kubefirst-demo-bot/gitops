@@ -17,8 +17,7 @@ spec:
       values: |-
         zippy2:
           image:
-            repository: /zippy2
-            tag: 1728d41
+            repository: 746669190615.dkr.ecr.us-east-2.amazonaws.com/kubefirst-demo-bot/zippy2
           ingress:
             className: nginx
             enabled: true
