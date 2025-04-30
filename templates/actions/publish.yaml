@@ -17,10 +17,10 @@ env:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    outputs:
-      registry: ${{ steps.login-ecr.outputs.registry }}
-      chart_version: ${{ steps.publish-chart.outputs.chart_version }}
-      repo_name: ${{ steps.extract-repo-name.outputs.repo_name }}
+    # outputs:
+    #   registry: ${{ steps.login-ecr.outputs.registry }}
+    #   chart_version: ${{ steps.publish-chart.outputs.chart_version }}
+    #   repo_name: ${{ steps.extract-repo-name.outputs.repo_name }}
     steps:
       - name: checkout
         uses: actions/checkout@v4

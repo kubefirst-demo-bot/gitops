@@ -1,4 +1,4 @@
-name: Publish image and helm chart to ECR
+name: Deploy a chart to a cluster
 on:
   workflow_dispatch:
     inputs:
