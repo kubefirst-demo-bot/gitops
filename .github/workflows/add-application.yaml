@@ -16,9 +16,9 @@ on:
         description: 'Cluster name'
         default: 'show-me-the-minutes'
         required: true
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
 
 jobs:
   # validate-inputs:
@@ -90,73 +90,3 @@ jobs:
           git commit -m "add ci content for $APP_NAME" || echo "No changes to commit"
           git push origin main
 
-  # create-argo-app:
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     id-token: write
-  #     contents: read
-  #   # needs:
-  #   #   - validate-inputs
-  #   env:
-  #     CLUSTER_NAME : ${{inputs.cluster_name}}
-  #     APP_NAME : ${{inputs.app_name}}
-  #   steps:
-  #     - name: Check out repository code
-  #       uses: actions/checkout@v4
-
-  #     - name: get-aws-cli
-  #       run: |
-  #         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-  #         unzip -q awscliv2.zip
-  #         sudo ./aws/install --update
-  #         aws --version
-
-  #     - name: configure aws credentials
-  #       uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
-  #       with:
-  #         role-to-assume: ${{ env.ASSUME_ROLE_ARN }}
-  #         aws-region: ${{ env.AWS_REGION }}
-
-
-  #     - name: create argo app
-  #       run: |
-
-  #         SHORT_SHA=$(aws ecr describe-images \
-  #           --repository-name kubefirst-demo-bot/zippy2 \
-  #           --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' \
-  #           --output text)
-
-  #         CHART_VERSION=$(aws ecr describe-images \
-  #           --repository-name kubefirst-demo-bot/charts/zippy2 \
-  #           --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' \
-  #           --output text)
-
-  #         REGISTRY_URL=$(aws ecr describe-repositories \
-  #           --query 'repositories[?repositoryName==`kubefirst-demo-bot/zippy2`].repositoryUri' \
-  #           --output text)
-
-  #         cp ./templates/argo-app.yaml ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
-
-  #         ESCAPED_REGISTRY_URL=$(echo $REGISTRY_URL | sed 's/\//\\\//g')
-
-  #         sed -i "s/{clusterName}/$CLUSTER_NAME/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
-  #         sed -i "s/{appName}/$APP_NAME/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
-  #         sed -i "s/{repoURL}/$ESCAPED_REGISTRY_URL/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
-  #         sed -i "s/{targetRevision}/$CHART_VERSION/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
-  #         sed -i "s/{short_sha}/$SHORT_SHA/g" ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
-
-  #         cat ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
-
-  #     # - name: Commit and push changes
-  #     #   env:
-  #     #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #     #     CLUSTER_NAME : ${{inputs.cluster_name}}
-  #     #     APP_NAME : ${{inputs.app_name}}
-  #     #   run: |
-  #     #     APP_NAME=$(echo "$APP_NAME" | cut -d / -f 5 | sed 's/\.git//' )
-
-  #     #     git config user.name "github-actions[bot]"
-  #     #     git config user.email "general@konstruct.io"
-  #     #     git add --all
-  #     #     git commit -m "[skip-ci] add $APP_NAME in $CLUSTER_NAME" || echo "No changes to commit"
-  #     #     git push origin HEAD
