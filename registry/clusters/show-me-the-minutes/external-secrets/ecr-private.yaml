@@ -1,0 +1,43 @@
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: ECRAuthorizationToken
+metadata:
+  name: ecr-private
+  namespace: argocd
+spec:
+  auth:
+    secretRef:
+      accessKeyIDSecretRef:
+        key: AccessKeyID
+        name: my-aws-creds
+      secretAccessKeySecretRef:
+        key: SecretAccessKey
+        name: my-aws-creds
+  region: us-east-2
+  scope: private
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: ecr-private
+  namespace: argocd
+spec:
+  refreshInterval: 30s
+  target:
+    name: ecr-private
+    template:
+      metadata:
+        labels:
+          argocd.argoproj.io/secret-type: repository
+      data:
+        name: ecr-private
+        type: helm
+        enableOCI: "true"
+        url: oci://746669190615.dkr.ecr.us-east-2.amazonaws.com/kubefirst-demo-bot/charts
+        password: "{{ .password }}"
+        username: "{{ .username }}"
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: ECRAuthorizationToken
+          name: ecr-private

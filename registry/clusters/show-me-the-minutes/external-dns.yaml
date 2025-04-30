@@ -21,7 +21,7 @@ spec:
           create: true
           name: external-dns
           annotations:
-            eks.amazonaws.com/role-arn: arn:aws:iam::746669190615:role/K1-show-me-the-minutes-external-dns
+            eks.amazonaws.com/role-arn: arn:aws:iam::746669190615:role/k1-show-me-the-minutes-external-dns
         provider: aws
         sources:
         - ingress
