@@ -1,4 +1,4 @@
-name: Add new application
+name: copy ci
 
 env:
   AWS_REGION: "us-east-2"
@@ -32,7 +32,7 @@ jobs:
   #     - name: Validate app name
   #       run: echo "Validating $APP_NAME"
 
-  copy-over-ci:
+  copy-ci:
     runs-on: ubuntu-latest
     env:
       CLUSTER_NAME: ${{inputs.cluster_name}}
