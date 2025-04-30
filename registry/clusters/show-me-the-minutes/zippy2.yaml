@@ -12,7 +12,7 @@ spec:
   source:
     repoURL: 746669190615.dkr.ecr.us-east-2.amazonaws.com/kubefirst-demo-bot/charts
     chart: zippy2
-    targetRevision: 0.1.0-rc.fa81ffd
+    targetRevision: 0.1.0-rc.8624dd5
     helm:
       values: |-
         zippy2:
