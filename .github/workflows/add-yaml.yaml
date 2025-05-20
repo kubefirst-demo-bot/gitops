@@ -79,7 +79,7 @@ jobs:
           sed -i "s#{imageRepoURL}#$ESCAPED_IMAGE_URL#g" ./registry/clusters/${CLUSTER_NAME}/${APP}.yaml
           sed -i "s#{targetRevision}#$CHART_VERSION#g" ./registry/clusters/${CLUSTER_NAME}/${APP}.yaml
           sed -i "s#{short_sha}#$SHORT_SHA#g" ./registry/clusters/${CLUSTER_NAME}/${APP}.yaml
-          cat ./registry/clusters/${CLUSTER_NAME}/${}.yaml
+          cat ./registry/clusters/${CLUSTER_NAME}/${APP}.yaml
       
       - name: cleanup AWS CLI 
         run: |
