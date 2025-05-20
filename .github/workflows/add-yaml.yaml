@@ -67,7 +67,8 @@ jobs:
 
           REGISTRY_URL=$ECR_CHART_REPO_URL
 
-          cp ./templates/argo-app.yaml ./registry/clusters/${CLUSTER_NAME}/${APP_NAME}.yaml
+          APP=$(echo -n $APP_NAME | cut -f 2 -d /)
+          cp ./templates/argo-app.yaml ./registry/clusters/${CLUSTER_NAME}/${APP}.yaml
 
           ESCAPED_REGISTRY_URL=$(echo $REGISTRY_URL | sed 's/\//\\\//g')
           ESCAPED_IMAGE_URL=$(echo $ECR_IMAGE_REPO_URL | sed 's/\//\\\//g')
