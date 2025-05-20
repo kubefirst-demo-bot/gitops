@@ -73,13 +73,13 @@ jobs:
           ESCAPED_REGISTRY_URL=$(echo $REGISTRY_URL | sed 's/\//\\\//g')
           ESCAPED_IMAGE_URL=$(echo $ECR_IMAGE_REPO_URL | sed 's/\//\\\//g')
 
-          sed -i "s/{clusterName}/$CLUSTER_NAME/g" ./registry/clusters/${CLUSTER_NAME}/${APP}.yaml
-          sed -i "s/{appName}/$APP_NAME/g" ./registry/clusters/${CLUSTER_NAME}/${APP}.yaml
-          sed -i "s/{chartRepoURL}/$ESCAPED_REGISTRY_URL/g" ./registry/clusters/${CLUSTER_NAME}/${APP}.yaml
-          sed -i "s/{imageRepoURL}/$ESCAPED_IMAGE_URL/g" ./registry/clusters/${CLUSTER_NAME}/${APP}.yaml
-          sed -i "s/{targetRevision}/$CHART_VERSION/g" ./registry/clusters/${CLUSTER_NAME}/${APP}.yaml
-          sed -i "s/{short_sha}/$SHORT_SHA/g" ./registry/clusters/${CLUSTER_NAME}/${APP}.yaml
-          cat ./registry/clusters/${CLUSTER_NAME}/${APP}.yaml
+          sed -i "s#{clusterName}#$CLUSTER_NAME#g" ./registry/clusters/${CLUSTER_NAME}/${}.yaml
+          sed -i "s#{appName}#$APP_NAME#g" ./registry/clusters/${CLUSTER_NAME}/${}.yaml
+          sed -i "s#{chartRepoURL}#$ESCAPED_REGISTRY_URL#g" ./registry/clusters/${CLUSTER_NAME}/${}.yaml
+          sed -i "s#{imageRepoURL}#$ESCAPED_IMAGE_URL#g" ./registry/clusters/${CLUSTER_NAME}/${}.yaml
+          sed -i "s#{targetRevision}#$CHART_VERSION#g" ./registry/clusters/${CLUSTER_NAME}/${}.yaml
+          sed -i "s#{short_sha}#$SHORT_SHA#g" ./registry/clusters/${CLUSTER_NAME}/${}.yaml
+          cat ./registry/clusters/${CLUSTER_NAME}/${}.yaml
       
       - name: cleanup AWS CLI 
         run: |
