@@ -71,7 +71,7 @@ jobs:
           cp ../gitops/templates/actions/deploy.yaml .github/workflows/deploy.yaml
           echo replace cluster name and app name
           # sed "s/{clusterName}/$CLUSTER_NAME/g" -i .github/workflows/publish.yaml
-          sed "s/{appName}/$APP_NAME/g" -i .github/workflows/publish.yaml
+          sed "s#{appName}#$APP_NAME#g" -i .github/workflows/publish.yaml
 
       - name: Commit and push changes
         env:
